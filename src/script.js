@@ -64,6 +64,8 @@ rgbeLoader.load('/spruit_sunrise.hdr', (environmentMap) =>
  * Terrain
  */
 const terrainGeometry = new THREE.PlaneGeometry(10, 10, 500, 500);
+terrainGeometry.deleteAttribute('uv');
+terrainGeometry.deleteAttribute('normal');
 terrainGeometry.rotateX(-Math.PI * 0.5);
 const terrainMaterial = new CustomShaderMaterial({
     // CSM
