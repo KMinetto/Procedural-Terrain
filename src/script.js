@@ -9,7 +9,11 @@ import {
     Evaluator,
     SUBTRACTION
 } from 'three-bvh-csg';
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
 import GUI from 'lil-gui';
+
+import terrainVShader from './shaders/terrain/vertex.glsl';
+import terrainFShader from './shaders/terrain/fragment.glsl';
 
 /**
  * Base
@@ -57,13 +61,27 @@ rgbeLoader.load('/spruit_sunrise.hdr', (environmentMap) =>
 })
 
 /**
- * Placeholder
+ * Terrain
  */
-const placeholder = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(2, 5),
-    new THREE.MeshPhysicalMaterial()
-);
-scene.add(placeholder);
+const terrainGeometry = new THREE.PlaneGeometry(10, 10, 500, 500);
+terrainGeometry.rotateX(-Math.PI * 0.5);
+const terrainMaterial = new CustomShaderMaterial({
+    // CSM
+    baseMaterial: THREE.MeshStandardMaterial,
+    silent: true,
+    vertexShader: terrainVShader,
+    fragmentShader: terrainFShader,
+
+    // Base Mesh
+    metalness: 0,
+    roughness: 0.5,
+    color: '#85D534',
+});
+const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+terrain.receiveShadow = true;
+terrain.castShadow = true;
+scene.add(terrain);
+
 
 /**
  * Board
