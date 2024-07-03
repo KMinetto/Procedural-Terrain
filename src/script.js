@@ -58,7 +58,7 @@ rgbeLoader.load('/spruit_sunrise.hdr', (environmentMap) =>
     scene.background = environmentMap;
     scene.backgroundBlurriness = 0.5;
     scene.environment = environmentMap;
-})
+});
 
 /**
  * Terrain

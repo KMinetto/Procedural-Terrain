@@ -15,14 +15,14 @@ float getElevation(vec2 position)
     float frequency = 1.0;
 
     float elevation = 0.0;
-    // elevation += simplexNoise2d(position * uPositionFrequecy) / 2.0;
-    // elevation += simplexNoise2d(position * uPositionFrequecy * 2.0) / 4.0;
-    // elevation += simplexNoise2d(position * uPositionFrequecy * 4.0) / 8.0;
     for (float i = 0.0; i < 3.0; i++) {
         elevation += simplexNoise2d(position * uPositionFrequecy * frequency) / regulation;
         regulation *= 2.0;
         frequency *= 2.0;
     }
+
+    float elevationSign = sign(elevation);
+    elevation = pow(abs(elevation), 2.0) * elevationSign;
 
     return elevation;
 }
