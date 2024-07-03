@@ -4,7 +4,16 @@ import {
     RGBELoader
 } from 'three/examples/jsm/Addons.js';
 
+import {
+    Brush,
+    Evaluator,
+    SUBTRACTION
+} from 'three-bvh-csg';
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
 import GUI from 'lil-gui';
+
+import terrainVShader from './shaders/terrain/vertex.glsl';
+import terrainFShader from './shaders/terrain/fragment.glsl';
 
 /**
  * Base
@@ -49,16 +58,92 @@ rgbeLoader.load('/spruit_sunrise.hdr', (environmentMap) =>
     scene.background = environmentMap;
     scene.backgroundBlurriness = 0.5;
     scene.environment = environmentMap;
-})
+});
+
+// Uniforms
+const uniforms = {
+    uPositionFrequency: new THREE.Uniform(0.2),
+    uStrength: new THREE.Uniform(2.0),
+    uWarpFrequency: new THREE.Uniform(5.0),
+    uWarpStrength: new THREE.Uniform(0.5),
+    uElevation: new THREE.Uniform(3.0),
+    uTime: new THREE.Uniform(0.0),
+    uColorWaterDeep: new THREE.Uniform(new THREE.Color("#002B3D")),
+    uColorWaterSurface: new THREE.Uniform(new THREE.Color("#66A8FF")),
+    uColorSand: new THREE.Uniform(new THREE.Color("#FFE894")),
+    uColorGrass: new THREE.Uniform(new THREE.Color("#85D534")),
+    uColorRock: new THREE.Uniform(new THREE.Color("#BFBD9D")),
+    uColorSnow: new THREE.Uniform(new THREE.Color("#FEFEFE")),
+};
 
 /**
- * Placeholder
+ * Terrain
  */
-const placeholder = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(2, 5),
-    new THREE.MeshPhysicalMaterial()
+const terrainGeometry = new THREE.PlaneGeometry(10, 10, 500, 500);
+terrainGeometry.deleteAttribute('uv');
+terrainGeometry.deleteAttribute('normal');
+terrainGeometry.rotateX(-Math.PI * 0.5);
+const terrainMaterial = new CustomShaderMaterial({
+    // CSM
+    baseMaterial: THREE.MeshStandardMaterial,
+    silent: true,
+    vertexShader: terrainVShader,
+    fragmentShader: terrainFShader,
+    uniforms: uniforms,
+
+    // Base Mesh
+    metalness: 0,
+    roughness: 0.5,
+    color: '#85D534',
+});
+const depthMaterial = new CustomShaderMaterial({
+    // CSM
+    baseMaterial: THREE.MeshDepthMaterial,
+    silent: true,
+    vertexShader: terrainVShader,
+    uniforms: uniforms,
+
+    // Base MeshDepthmaterial
+    depthPacking: THREE.RGBADepthPacking,
+});
+const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+terrain.customDepthMaterial = depthMaterial;
+terrain.receiveShadow = true;
+terrain.castShadow = true;
+scene.add(terrain);
+
+/**
+ * Water
+ */
+const water = new THREE.Mesh(
+    new THREE.PlaneGeometry(10, 10, 1, 1),
+    new THREE.MeshPhysicalMaterial({
+        transmission: 1,
+        roughness: 0.3
+    })
 );
-scene.add(placeholder);
+water.rotation.x = -Math.PI * 0.5;
+water.position.y = -0.1;
+scene.add(water);
+
+/**
+ * Board
+ */
+const boardFill = new Brush(new THREE.BoxGeometry(11, 2, 11));
+const boardHole = new Brush(new THREE.BoxGeometry(10, 2.1, 10));
+
+// Evaluate
+const evaluator = new Evaluator();
+const board = evaluator.evaluate(boardFill, boardHole, SUBTRACTION);
+board.geometry.clearGroups();
+board.material = new THREE.MeshStandardMaterial({
+    color: 0XFFFFFF,
+    metalness: 0,
+    roughness: 0.3
+});
+board.receiveShadow = true;
+board.castShadow = true;
+scene.add(board);
 
 /**
  * Lights
@@ -110,6 +195,80 @@ window.addEventListener('resize', () =>
 });
 
 /**
+ * Tweaks
+ */
+const terrainGUI = gui.addFolder("Génération Terrain");
+const baseTerrainGUI = terrainGUI.addFolder("Génération Terrain Base");
+const warpTerrainGUI = terrainGUI.addFolder("Génération Terrain Secondaire");
+const terrainColorGUI = gui.addFolder("Couleurs du terrain");
+baseTerrainGUI.add(uniforms.uElevation, 'value')
+    .min(0.0)
+    .max(5.0)
+    .step(1.0)
+    .name("Nombre d'Elévation")
+;
+baseTerrainGUI.add(uniforms.uPositionFrequency, 'value')
+    .min(0.0)
+    .max(0.3)
+    .step(0.001)
+    .name("Frequence terrain")
+;
+baseTerrainGUI.add(uniforms.uStrength, 'value')
+    .min(0.0)
+    .max(3.0)
+    .step(0.001)
+    .name("Force de génération")
+;
+warpTerrainGUI.add(uniforms.uWarpFrequency, 'value')
+    .min(0.0)
+    .max(10.0)
+    .step(0.001)
+    .name("Frequence terrain secondaire")
+;
+warpTerrainGUI.add(uniforms.uWarpStrength, 'value')
+    .min(0.0)
+    .max(1.0)
+    .step(0.001)
+    .name("Force générattion terrain secondaire");
+;
+terrainColorGUI.addColor(uniforms.uColorWaterDeep, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorWaterDeep.value.set(uniforms.uColorWaterDeep.value);
+    })
+    .name("Couleur eaux profondes")
+;
+terrainColorGUI.addColor(uniforms.uColorWaterSurface, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorWaterSurface.value.set(uniforms.uColorWaterSurface.value);
+    })
+    .name("Couleur eaux surface")
+;
+terrainColorGUI.addColor(uniforms.uColorSand, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorSand.value.set(uniforms.uColorSand.value);
+    })
+    .name("Couleur sable")
+;
+terrainColorGUI.addColor(uniforms.uColorGrass, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorGrass.value.set(uniforms.uColorGrass.value);
+    })
+    .name("Couleur herbes")
+;
+terrainColorGUI.addColor(uniforms.uColorRock, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorRock.value.set(uniforms.uColorRock.value);
+    })
+    .name("Couleur pierres")
+;
+terrainColorGUI.addColor(uniforms.uColorSnow, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorSnow.value.set(uniforms.uColorSnow.value);
+    })
+    .name("Couleur neiges")
+;
+
+/**
  * Animate
  */
 const clock = new THREE.Clock();
@@ -117,6 +276,9 @@ const clock = new THREE.Clock();
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime();
+
+    // Uniforms
+    uniforms.uTime.value = elapsedTime;
 
     // Update controls
     controls.update();
