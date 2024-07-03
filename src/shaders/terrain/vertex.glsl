@@ -9,6 +9,8 @@ uniform float uTime;
 // Attributes
 
 // Varyings
+varying vec3 vPosition;
+varying float vUpDot;
 
 // Includes
 #include ../includes/simplexNoise2d.glsl
@@ -54,4 +56,9 @@ void main()
     vec3 toA = normalize(positionA - csm_Position);
     vec3 toB = normalize(positionB - csm_Position);
     csm_Normal = cross(toA, toB);
+
+    vPosition = csm_Position;
+    vPosition.xz += uTime * 0.2;
+
+    vUpDot = dot(csm_Normal, vec3(0.0, 1.0, 0.0));
 }

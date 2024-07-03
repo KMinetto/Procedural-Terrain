@@ -68,6 +68,12 @@ const uniforms = {
     uWarpStrength: new THREE.Uniform(0.5),
     uElevation: new THREE.Uniform(3.0),
     uTime: new THREE.Uniform(0.0),
+    uColorWaterDeep: new THREE.Uniform(new THREE.Color("#002B3D")),
+    uColorWaterSurface: new THREE.Uniform(new THREE.Color("#66A8FF")),
+    uColorSand: new THREE.Uniform(new THREE.Color("#FFE894")),
+    uColorGrass: new THREE.Uniform(new THREE.Color("#85D534")),
+    uColorRock: new THREE.Uniform(new THREE.Color("#BFBD9D")),
+    uColorSnow: new THREE.Uniform(new THREE.Color("#FEFEFE")),
 };
 
 /**
@@ -180,6 +186,7 @@ window.addEventListener('resize', () =>
 const terrainGUI = gui.addFolder("Génération Terrain");
 const baseTerrainGUI = terrainGUI.addFolder("Génération Terrain Base");
 const warpTerrainGUI = terrainGUI.addFolder("Génération Terrain Secondaire");
+const terrainColorGUI = gui.addFolder("Couleurs du terrain");
 baseTerrainGUI.add(uniforms.uElevation, 'value')
     .min(0.0)
     .max(5.0)
@@ -209,6 +216,42 @@ warpTerrainGUI.add(uniforms.uWarpStrength, 'value')
     .max(1.0)
     .step(0.001)
     .name("Force générattion terrain secondaire");
+;
+terrainColorGUI.addColor(uniforms.uColorWaterDeep, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorWaterDeep.value.set(uniforms.uColorWaterDeep.value);
+    })
+    .name("Couleur eaux profondes")
+;
+terrainColorGUI.addColor(uniforms.uColorWaterSurface, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorWaterSurface.value.set(uniforms.uColorWaterSurface.value);
+    })
+    .name("Couleur eaux surface")
+;
+terrainColorGUI.addColor(uniforms.uColorSand, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorSand.value.set(uniforms.uColorSand.value);
+    })
+    .name("Couleur sable")
+;
+terrainColorGUI.addColor(uniforms.uColorGrass, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorGrass.value.set(uniforms.uColorGrass.value);
+    })
+    .name("Couleur herbes")
+;
+terrainColorGUI.addColor(uniforms.uColorRock, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorRock.value.set(uniforms.uColorRock.value);
+    })
+    .name("Couleur pierres")
+;
+terrainColorGUI.addColor(uniforms.uColorSnow, 'value')
+    .onChange(() => {
+        terrain.material.uniforms.uColorSnow.value.set(uniforms.uColorSnow.value);
+    })
+    .name("Couleur neiges")
 ;
 
 /**
