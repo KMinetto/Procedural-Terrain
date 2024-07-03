@@ -60,6 +60,15 @@ rgbeLoader.load('/spruit_sunrise.hdr', (environmentMap) =>
     scene.environment = environmentMap;
 });
 
+// Uniforms
+const uniforms = {
+    uPositionFrequency: new THREE.Uniform(0.2),
+    uStrength: new THREE.Uniform(2.0),
+    uWarpFrequency: new THREE.Uniform(5.0),
+    uWarpStrength: new THREE.Uniform(0.5),
+    uElevation: new THREE.Uniform(3.0),
+}
+
 /**
  * Terrain
  */
@@ -73,6 +82,7 @@ const terrainMaterial = new CustomShaderMaterial({
     silent: true,
     vertexShader: terrainVShader,
     fragmentShader: terrainFShader,
+    uniforms: uniforms,
 
     // Base Mesh
     metalness: 0,
@@ -83,7 +93,6 @@ const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
 terrain.receiveShadow = true;
 terrain.castShadow = true;
 scene.add(terrain);
-
 
 /**
  * Board
@@ -152,6 +161,43 @@ window.addEventListener('resize', () =>
     renderer.setSize(sizes.width, sizes.height);
     renderer.setPixelRatio(sizes.pixelRatio);
 });
+
+/**
+ * Tweaks
+ */
+const terrainGUI = gui.addFolder("Génération Terrain");
+const baseTerrainGUI = terrainGUI.addFolder("Génération Terrain Base");
+const warpTerrainGUI = terrainGUI.addFolder("Génération Terrain Secondaire");
+baseTerrainGUI.add(uniforms.uElevation, 'value')
+    .min(0.0)
+    .max(5.0)
+    .step(1.0)
+    .name("Nombre d'Elévation")
+;
+baseTerrainGUI.add(uniforms.uPositionFrequency, 'value')
+    .min(0.0)
+    .max(0.3)
+    .step(0.001)
+    .name("Frequence terrain")
+;
+baseTerrainGUI.add(uniforms.uStrength, 'value')
+    .min(0.0)
+    .max(3.0)
+    .step(0.001)
+    .name("Force de génération")
+;
+warpTerrainGUI.add(uniforms.uWarpFrequency, 'value')
+    .min(0.0)
+    .max(10.0)
+    .step(0.001)
+    .name("Frequence terrain secondaire")
+;
+warpTerrainGUI.add(uniforms.uWarpStrength, 'value')
+    .min(0.0)
+    .max(1.0)
+    .step(0.001)
+    .name("Force générattion terrain secondaire");
+;
 
 /**
  * Animate
