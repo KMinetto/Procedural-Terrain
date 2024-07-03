@@ -12,12 +12,18 @@ float getElevation(vec2 position)
 {
     float uPositionFrequecy = 0.2;
     float uStrength = 2.0;
+    float uWarpFrequency = 5.0;
+    float uWarpStrength = 0.5;
+
     float regulation = 2.0;
     float frequency = 1.0;
 
+    vec2 warpedPosition = position;
+    warpedPosition += simplexNoise2d(warpedPosition * uPositionFrequecy * uWarpFrequency) * uWarpStrength;
+
     float elevation = 0.0;
     for (float i = 0.0; i < 3.0; i++) {
-        elevation += simplexNoise2d(position * uPositionFrequecy * frequency) / regulation;
+        elevation += simplexNoise2d(warpedPosition * uPositionFrequecy * frequency) / regulation;
         regulation *= 2.0;
         frequency *= 2.0;
     }
