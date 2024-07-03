@@ -90,7 +90,18 @@ const terrainMaterial = new CustomShaderMaterial({
     roughness: 0.5,
     color: '#85D534',
 });
+const depthMaterial = new CustomShaderMaterial({
+    // CSM
+    baseMaterial: THREE.MeshDepthMaterial,
+    silent: true,
+    vertexShader: terrainVShader,
+    uniforms: uniforms,
+
+    // Base MeshDepthmaterial
+    depthPacking: THREE.RGBADepthPacking,
+});
 const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+terrain.customDepthMaterial = depthMaterial;
 terrain.receiveShadow = true;
 terrain.castShadow = true;
 scene.add(terrain);
