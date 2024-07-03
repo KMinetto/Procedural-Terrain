@@ -11,6 +11,7 @@
 float getElevation(vec2 position)
 {
     float uPositionFrequecy = 0.2;
+    float uStrength = 2.0;
     float regulation = 2.0;
     float frequency = 1.0;
 
@@ -23,6 +24,7 @@ float getElevation(vec2 position)
 
     float elevationSign = sign(elevation);
     elevation = pow(abs(elevation), 2.0) * elevationSign;
+    elevation *= uStrength;
 
     return elevation;
 }
